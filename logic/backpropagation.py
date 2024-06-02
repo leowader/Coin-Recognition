@@ -4,7 +4,7 @@ import tensorflow as tf
 import pandas as pd
 import numpy as np
 
-datos = pd.read_excel("data/data.xlsx")
+datos = pd.read_excel("logic/data/data.xlsx")
 
 x = datos.filter(like='X') 
 y = datos.filter(like='Y')

@@ -3,7 +3,6 @@ import numpy as np
 import threading
 from scipy import signal
 
-# Variables para verificar si el micrófono está activo y para almacenar los datos de audio
 mic_active = False
 audio_data = []
 
@@ -22,11 +21,7 @@ def calculate_frequency(audio_data, sample_rate):
     return frequency
 
 def record_audio():
-    """
-    Función para grabar audio desde el micrófono.
-    """
     global mic_active, audio_data
-    # Configura los parámetros de grabación
     duration = 10  # Duración de la grabación en segundos
     sample_rate = 44100  # Tasa de muestreo en Hz
     chunk = 1024  # Tamaño del búfer de audio
@@ -63,9 +58,6 @@ def record_audio():
     print("Frecuencia del audio: {:.2f} Hz".format(frequency))
 
 def main():
-    """
-    Función principal que controla la grabación del micrófono.
-    """
     global mic_active
     print("Presiona '1' para iniciar la grabación del micrófono.")
     while True:
@@ -74,8 +66,6 @@ def main():
             # Inicia la grabación en un hilo separado
             threading.Thread(target=record_audio).start()
         elif key == '2' and mic_active:
-            # Detiene la grabación si está activa
             mic_active = False
-
 if __name__ == "__main__":
     main()
