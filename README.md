@@ -1,5 +1,5 @@
 ![Badge en Desarollo](https://img.shields.io/badge/STATUS-EN%20DESAROLLO-green)
-#Requisitos
+# Requisitos
 - python 3.12
 - TensorFlow 2.x
 - Pandas
@@ -8,5 +8,5 @@
 - PyAudio
 - SciPy
 - Jupiter Notebook 
-#Install
+# Install
 + pip install tensorflow pandas numpy openpyxl pyaudio scipy jupyter
