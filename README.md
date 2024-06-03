@@ -9,4 +9,5 @@
 - SciPy
 - Jupiter Notebook 
 # Install
-+ pip install tensorflow pandas numpy openpyxl pyaudio scipy jupyter
++ Instalar en la carpeta raiz 
+    - pip install tensorflow pandas numpy openpyxl pyaudio scipy jupyter
