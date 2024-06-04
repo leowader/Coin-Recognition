@@ -1,18 +1,18 @@
-from cProfile import label #Para mostrar los mensajes en la interfaz
-import tkinter as tk #Para la interfaz grafica
-from PIL import Image, ImageTk #Para manejar imagenes
+from cProfile import label  # Para mostrar los mensajes en la interfaz
+import tkinter as tk  # Para la interfaz gráfica
+from PIL import Image, ImageTk  # Para manejar imágenes
 import sounddevice as sd
-import numpy as np #Para manejar los datos de audio
-from scipy.io.wavfile import write #Para manejar los datos de audio
+import numpy as np  # Para manejar los datos de audio
+from scipy.io.wavfile import write  # Para manejar los datos de audio
 from pydub import AudioSegment
-import threading #Para manejar la grabación de audio en un hilo separado.
-import os #Para manejar el guardado de archivo en los directorios
+import threading  # Para manejar la grabación de audio en un hilo separado.
+import os  # Para manejar el guardado de archivo en los directorios
+from scipy.fft import fft, fftfreq  # Para el análisis de frecuencias
 
 # Variables globales para la grabación de audio
 is_recording = False
 recording_thread = None
 filename_wav = "output.wav"
-filename_mp3 = "output.mp3"
 directory = "./audio/"  # Cambia esto al directorio deseado
 
 def toggle_recording():
@@ -21,7 +21,7 @@ def toggle_recording():
     if is_recording:
         is_recording = False
         status_label.config(text="Audio grabado")
-        save_audio()
+        # save_audio()
     else:
         is_recording = True
         status_label.config(text="Grabando audio")
@@ -31,21 +31,39 @@ def toggle_recording():
 def record_audio():
     global is_recording, filename_wav
     fs = 44100  # Frecuencia de muestreo
-    duration = 10  # Duración máxima (segundos)
+    duration = 5  # Duración máxima (segundos)
 
     # Grabar audio
     print("Grabando...")
     audio_data = sd.rec(int(duration * fs), samplerate=fs, channels=2, dtype='int16')
-    sd.wait()  # Esperar hasta que se complete la grabación
+
+    # Esperar hasta que se complete la grabación o se detenga manualmente
+    for _ in range(int(duration * 10)):
+        if not is_recording:
+            break
+        sd.sleep(100)
+
+    sd.stop()  # Detener la grabación si se detiene manualmente
     write(filename_wav, fs, audio_data)
     print("Grabación completada")
 
+        # Analizar la frecuencia más alta
+    audio_data_mono = np.mean(audio_data, axis=1)  # Convertir a mono
+    N = len(audio_data_mono)
+    yf = fft(audio_data_mono)
+    xf = fftfreq(N, 1 / fs)
+
+    idx = np.argmax(np.abs(yf))
+    freq = abs(xf[idx])
+    print(f"Frecuencia más alta: {freq} Hz")
+
 def save_audio():
-    global filename_wav, filename_mp3, directory
+    global filename_wav, directory
     # Convertir el archivo WAV a MP3
     audio = AudioSegment.from_wav(filename_wav)
-    audio.export(os.path.join(directory, filename_mp3), format="mp3")
-    print(f"Audio guardado como {filename_mp3} en {directory}")
+    print(f"Audio guardado como {filename_wav} en {directory}")
+
+#-----------------------------------------------INTERFAZ--------------------------------------------------
 
 # Crear la ventana principal
 root = tk.Tk()
