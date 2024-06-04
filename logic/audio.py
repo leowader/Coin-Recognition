@@ -1,5 +1,6 @@
 import pyaudio
 import numpy as np
+import librosa 
 import threading
 from scipy import signal
 import time
@@ -23,7 +24,7 @@ def calculate_frequency(audio_data, sample_rate):
 
 def record_audio():
     global mic_active, audio_data
-    duration = 10  # Duración de la grabación en segundos
+    duration = 5  # Duración de la grabación en segundos
     sample_rate = 44100  # Tasa de muestreo en Hz
     chunk = 1024  # Tamaño del búfer de audio
     # Coeficientes del filtro de preénfasis y post-enfasis
@@ -31,10 +32,11 @@ def record_audio():
     postemphasis_coeff = 1.0 / preemphasis_coeff
     preemphasis_filter = [1, -preemphasis_coeff]
     postemphasis_filter = [1, -postemphasis_coeff]
+    
     # Inicia la grabación
     audio_data = []
     p = pyaudio.PyAudio()
-    stream = p.open(format=pyaudio.paFloat32, channels=1, rate=sample_rate, input=True, output=True, frames_per_buffer=chunk)
+    stream = p.open(format=pyaudio.paFloat32, channels=1, rate=sample_rate, input=True, frames_per_buffer=chunk)
     mic_active = True
     print("Grabando audio... (Presiona '2' para detener)")
     for _ in range(int(sample_rate / chunk * duration)):
@@ -49,14 +51,30 @@ def record_audio():
     p.terminate()
     mic_active = False
     print("Grabación finalizada.")
+    
     # Concatena los fragmentos de audio en un solo array
     audio_data = np.concatenate(audio_data)
-    print("audi",audio_data)
+    
     # Aplica el filtro de post-enfasis
     audio_data = signal.lfilter(postemphasis_filter, 1, audio_data)
+    
+    # Aplicar filtro pasa bajas para eliminar ruido de alta frecuencia
+    nyquist = 0.5 * sample_rate
+    low_cutoff = 3000 / nyquist  # Frecuencia de corte en Hz (por ejemplo, 3000 Hz)
+    b, a = signal.butter(5, low_cutoff, btype='low')
+    audio_data = signal.filtfilt(b, a, audio_data)
+    
+    # Normalizar el audio
+    audio_data = audio_data / np.max(np.abs(audio_data))
+    
+    # Reducción de ruido con librosa
+    audio_data = librosa.effects.preemphasis(audio_data, coef=preemphasis_coeff)
+    
     # Calcula la frecuencia del audio grabado
     frequency = calculate_frequency(audio_data, sample_rate)
     print("Frecuencia del audio: {:.2f} Hz".format(frequency))
+    
+    return audio_data
 
 def main():
     global mic_active
